@@ -376,6 +376,9 @@ module core_top (
         32'h200: begin
           use_square_pixels <= bridge_wr_data[0];
         end
+        32'h208: begin
+          color_correction <= bridge_wr_data[0];
+        end
         32'h204: begin
           blend_enabled <= bridge_wr_data[0];
         end
@@ -688,6 +691,7 @@ module core_top (
   reg mouse_enabled;
 
   reg use_square_pixels = 0;
+  reg color_correction = 1;
   reg blend_enabled = 0;
 
   // Settings sync
@@ -704,6 +708,7 @@ module core_top (
   wire mouse_enabled_s;
 
   wire use_square_pixels_s;
+  wire color_correction_s;
   wire blend_enabled_s;
 
   synch_3 #(
@@ -720,6 +725,7 @@ module core_top (
         joystick_deadzone,
         mouse_enabled,
         use_square_pixels,
+        color_correction,
         blend_enabled
       },
       {
@@ -733,6 +739,7 @@ module core_top (
         joystick_deadzone_s,
         mouse_enabled_s,
         use_square_pixels_s,
+        color_correction_s,
         blend_enabled_s
       },
       clk_sys_21_48
@@ -970,7 +977,13 @@ module core_top (
       rgb <= {9'b0, ~latched_snap_index[0], use_square_pixels_s, 10'b0, 3'b0};
     end else if (de_out) begin
       de  <= 1;
-      rgb <= rgb_out;
+      if (color_correction_s) begin
+        rgb[23:16] <= (((rgb_out[23:16] * 234) >> 8) > 255) ? 8'd255 : ((rgb_out[23:16] * 234) >> 8);
+        rgb[15:8]  <= (((rgb_out[15:8] * 258) >> 8) > 255) ? 8'd255 : ((rgb_out[15:8] * 258) >> 8);
+        rgb[7:0]   <= (((rgb_out[7:0] * 304) >> 8) > 255) ? 8'd255 : ((rgb_out[7:0] * 304) >> 8);
+      end else begin
+        rgb <= rgb_out;
+      end
     end
   end
 
