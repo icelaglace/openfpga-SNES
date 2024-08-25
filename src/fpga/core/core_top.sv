@@ -961,10 +961,10 @@ module core_top (
   reg prev_de;
   reg prev_vs;
   reg [7:0] latched_snap_index;
-
-  wire [15:0] r_lerp = 0;
-  wire [15:0] g_lerp = 0;
-  wire [15:0] b_lerp = 0;
+  
+  wire [15:0] r_lerp = (rgb_out[23:16] * (255 - color_correction_s) + ((rgb_out[23:16] * 234) >> 8) * color_correction_s) >> 8;
+  wire [15:0] g_lerp = (rgb_out[15:8]  * (255 - color_correction_s) + ((rgb_out[15:8] * 258) >> 8)  * color_correction_s) >> 8;
+  wire [15:0] b_lerp = (rgb_out[7:0]   * (255 - color_correction_s) + ((rgb_out[7:0] * 304) >> 8)   * color_correction_s) >> 8;
 
   always @(posedge clk_video_5_37) begin
     prev_de <= de_out;
@@ -981,11 +981,6 @@ module core_top (
       rgb <= {9'b0, ~latched_snap_index[0], use_square_pixels_s, 10'b0, 3'b0};
     end else if (de_out) begin
       de  <= 1;
-      
-      r_lerp = (rgb_out[23:16] * (255 - color_correction_s) + ((rgb_out[23:16] * 234) >> 8) * color_correction_s) >> 8;
-      g_lerp = (rgb_out[15:8]  * (255 - color_correction_s) + ((rgb_out[15:8] * 258) >> 8)  * color_correction_s) >> 8;
-      b_lerp = (rgb_out[7:0]   * (255 - color_correction_s) + ((rgb_out[7:0] * 304) >> 8)   * color_correction_s) >> 8;
-
       rgb[23:16] <= (r_lerp > 16'd255) ? 8'd255 : r_lerp[7:0];
       rgb[15:8]  <= (g_lerp > 16'd255) ? 8'd255 : g_lerp[7:0];
       rgb[7:0]   <= (b_lerp > 16'd255) ? 8'd255 : b_lerp[7:0];
