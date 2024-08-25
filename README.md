@@ -61,6 +61,7 @@ Savestates/Memories/Sleep are not supported by any FPGA SNES core. Not this one,
 ### Video
 
 * `Square Pixels` - The internal resolution of the SNES is a 8:7 pixel aspect ratio (wide pixels), which roughly corresponds to what users would see on 4:3 display aspect ratio CRTs. Some games are designed to be displayed at 8:7 PAR (the core's default), and others at 1:1 PAR (square pixels). The `Square Pixels` option is provided to switch to a 1:1 pixel aspect ratio
+* `Color Correction` - Japanese developers during the SNES era designed their games on CRT displays with a distinct cooler tone. To accurately represent these classic titles, the core includes a color correction slider that approximates the 9300K color temperature of these original displays. This slider ranges from **0** (original RGB output) to **255** (D93/9300k corrected RGB output).
 * `Pseudo Transparency` - Enable blending of adjacent pixels, used in some games to simulate transparency
 
 ### Turbo

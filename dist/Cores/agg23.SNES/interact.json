@@ -119,13 +119,19 @@
       {
         "name": "Color Correction",
         "id": 60,
-        "type": "check",
+        "type": "slider_u32",
         "enabled": true,
         "address": "0x208",
         "persist": true,
         "writeonly": true,
         "defaultval": 0,
-        "value": 1
+        "graphical": {
+          "signed": false,
+          "min": 0,
+          "max": 255,
+          "adjust_small": 1,
+          "adjust_large": 32
+        }
       },
       {
         "name": "Pseudo Transparency",

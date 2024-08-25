@@ -377,7 +377,7 @@ module core_top (
           use_square_pixels <= bridge_wr_data[0];
         end
         32'h208: begin
-          color_correction <= bridge_wr_data[0];
+          color_correction <= bridge_wr_data[7:0];
         end
         32'h204: begin
           blend_enabled <= bridge_wr_data[0];
@@ -691,7 +691,7 @@ module core_top (
   reg mouse_enabled;
 
   reg use_square_pixels = 0;
-  reg color_correction = 1;
+  reg [7:0] color_correction = 0;
   reg blend_enabled = 0;
 
   // Settings sync
@@ -708,11 +708,11 @@ module core_top (
   wire mouse_enabled_s;
 
   wire use_square_pixels_s;
-  wire color_correction_s;
+  wire [7:0] color_correction_s;
   wire blend_enabled_s;
 
   synch_3 #(
-      .WIDTH(25)
+      .WIDTH(33)
   ) settings_s (
       {
         reset_button,
@@ -962,6 +962,10 @@ module core_top (
   reg prev_vs;
   reg [7:0] latched_snap_index;
 
+  wire [15:0] r_lerp = 0;
+  wire [15:0] g_lerp = 0;
+  wire [15:0] b_lerp = 0;
+
   always @(posedge clk_video_5_37) begin
     prev_de <= de_out;
     prev_vs <= video_vs;
@@ -977,13 +981,14 @@ module core_top (
       rgb <= {9'b0, ~latched_snap_index[0], use_square_pixels_s, 10'b0, 3'b0};
     end else if (de_out) begin
       de  <= 1;
-      if (color_correction_s) begin
-        rgb[23:16] <= (((rgb_out[23:16] * 234) >> 8) > 255) ? 8'd255 : ((rgb_out[23:16] * 234) >> 8);
-        rgb[15:8]  <= (((rgb_out[15:8] * 258) >> 8) > 255) ? 8'd255 : ((rgb_out[15:8] * 258) >> 8);
-        rgb[7:0]   <= (((rgb_out[7:0] * 304) >> 8) > 255) ? 8'd255 : ((rgb_out[7:0] * 304) >> 8);
-      end else begin
-        rgb <= rgb_out;
-      end
+      
+      r_lerp = (rgb_out[23:16] * (255 - color_correction_s) + ((rgb_out[23:16] * 234) >> 8) * color_correction_s) >> 8;
+      g_lerp = (rgb_out[15:8]  * (255 - color_correction_s) + ((rgb_out[15:8] * 258) >> 8)  * color_correction_s) >> 8;
+      b_lerp = (rgb_out[7:0]   * (255 - color_correction_s) + ((rgb_out[7:0] * 304) >> 8)   * color_correction_s) >> 8;
+
+      rgb[23:16] <= (r_lerp > 16'd255) ? 8'd255 : r_lerp[7:0];
+      rgb[15:8]  <= (g_lerp > 16'd255) ? 8'd255 : g_lerp[7:0];
+      rgb[7:0]   <= (b_lerp > 16'd255) ? 8'd255 : b_lerp[7:0];
     end
   end
 
