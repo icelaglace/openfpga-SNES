@@ -376,10 +376,13 @@ module core_top (
         32'h200: begin
           use_square_pixels <= bridge_wr_data[0];
         end
-        32'h208: begin
+        32'h204: begin
           color_correction <= bridge_wr_data[7:0];
         end
-        32'h204: begin
+        32'h208: begin
+          color_blind_type <= bridge_wr_data[1:0];
+        end
+        32'h20C: begin
           blend_enabled <= bridge_wr_data[0];
         end
       endcase
@@ -692,6 +695,7 @@ module core_top (
 
   reg use_square_pixels = 0;
   reg [7:0] color_correction = 0;
+  reg [1:0] color_blind_type = 0;
   reg blend_enabled = 0;
 
   // Settings sync
@@ -709,10 +713,11 @@ module core_top (
 
   wire use_square_pixels_s;
   wire [7:0] color_correction_s;
+  wire [1:0] color_blind_type_s;
   wire blend_enabled_s;
 
   synch_3 #(
-      .WIDTH(33)
+      .WIDTH(35)
   ) settings_s (
       {
         reset_button,
@@ -726,6 +731,7 @@ module core_top (
         mouse_enabled,
         use_square_pixels,
         color_correction,
+        color_blind_type,
         blend_enabled
       },
       {
@@ -740,6 +746,7 @@ module core_top (
         mouse_enabled_s,
         use_square_pixels_s,
         color_correction_s,
+        color_blind_type_s,
         blend_enabled_s
       },
       clk_sys_21_48
@@ -962,10 +969,16 @@ module core_top (
   reg prev_vs;
   reg [7:0] latched_snap_index;
 
-  wire [7:0] cc_s = (color_correction_s * 255) / 100;
-  wire [15:0] r_lerp = (rgb_out[23:16] * (255 - cc_s) + ((rgb_out[23:16] * 234) >> 8) * cc_s) >> 8;
-  wire [15:0] g_lerp = (rgb_out[15:8]  * (255 - cc_s) + ((rgb_out[15:8] * 258) >> 8)  * cc_s) >> 8;
-  wire [15:0] b_lerp = (rgb_out[7:0]   * (255 - cc_s) + ((rgb_out[7:0] * 304) >> 8)   * cc_s) >> 8;
+  wire [23:0] rgb_temp;
+  color_blindness color_blindness_inst (
+      .rgb_in(rgb_out),
+      .deficiency(color_blind_type_s),
+      .rgb_out(rgb_temp)
+  );
+
+  wire [15:0] r_lerp = (rgb_temp[23:16] * (255 - color_correction_s) + ((rgb_temp[23:16] * 234) >> 8) * color_correction_s) >> 8;
+  wire [15:0] g_lerp = (rgb_temp[15:8]  * (255 - color_correction_s) + ((rgb_temp[15:8] * 258) >> 8)  * color_correction_s) >> 8;
+  wire [15:0] b_lerp = (rgb_temp[7:0]   * (255 - color_correction_s) + ((rgb_temp[7:0] * 304) >> 8)   * color_correction_s) >> 8;
 
   always @(posedge clk_video_5_37) begin
     prev_de <= de_out;
