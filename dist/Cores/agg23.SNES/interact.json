@@ -128,9 +128,9 @@
         "graphical": {
           "signed": false,
           "min": 0,
-          "max": 255,
-          "adjust_small": 1,
-          "adjust_large": 32
+          "max": 100,
+          "adjust_small": 10,
+          "adjust_large": 20
         }
       },
       {

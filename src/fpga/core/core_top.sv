@@ -961,10 +961,11 @@ module core_top (
   reg prev_de;
   reg prev_vs;
   reg [7:0] latched_snap_index;
-  
-  wire [15:0] r_lerp = (rgb_out[23:16] * (255 - color_correction_s) + ((rgb_out[23:16] * 234) >> 8) * color_correction_s) >> 8;
-  wire [15:0] g_lerp = (rgb_out[15:8]  * (255 - color_correction_s) + ((rgb_out[15:8] * 258) >> 8)  * color_correction_s) >> 8;
-  wire [15:0] b_lerp = (rgb_out[7:0]   * (255 - color_correction_s) + ((rgb_out[7:0] * 304) >> 8)   * color_correction_s) >> 8;
+
+  wire [7:0] cc_s = (color_correction_s * 255) / 100;
+  wire [15:0] r_lerp = (rgb_out[23:16] * (255 - cc_s) + ((rgb_out[23:16] * 234) >> 8) * cc_s) >> 8;
+  wire [15:0] g_lerp = (rgb_out[15:8]  * (255 - cc_s) + ((rgb_out[15:8] * 258) >> 8)  * cc_s) >> 8;
+  wire [15:0] b_lerp = (rgb_out[7:0]   * (255 - cc_s) + ((rgb_out[7:0] * 304) >> 8)   * cc_s) >> 8;
 
   always @(posedge clk_video_5_37) begin
     prev_de <= de_out;
